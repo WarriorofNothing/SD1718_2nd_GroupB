@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package com.dropboxish.grpc;
+
+option java_multiple_files = true;
+
+message RelayRequest{
+    string fileName = 1;
+    string fileHash = 2;
+    string pattern = 3;
+}
+
+message RelayResponse{
+    string status = 1;
+}
+
+message FileRequest{
+    string fileName = 1;
+    string fileHash = 2;
+}
+
+message Chunk{
+    bytes chunk = 1;
+}
+
+message ListResponse{
+    string fileName = 1;
+    int64 fileSize = 2;
+}
+
+service ApplicationService{
+    rpc relayFile(RelayRequest) returns (RelayResponse);
+    rpc getFile(FileRequest) returns (stream Chunk);
+    rpc relayDelete(RelayRequest) returns (RelayResponse);
+    rpc getList(RelayRequest) returns (stream ListResponse);
+}

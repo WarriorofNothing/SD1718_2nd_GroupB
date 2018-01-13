@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="sqlite-jdbc-3.21.0">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/AppData/Roaming/Skype/My Skype Received Files/sqlite-jdbc-3.21.0.jar!/" />
+      <root url="jar://$USER_HOME$/AppData/Roaming/Skype/My Skype Received Files/JavaReedSolomon-master.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
