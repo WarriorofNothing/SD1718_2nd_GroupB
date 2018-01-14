@@ -94,7 +94,8 @@ public class StorageController extends ReceiverAdapter{
     }
 
     private boolean createSQLiteTable(){
-        String url = "jdbc:sqlite:C:\\Users\\alber\\Desktop\\DB\\sqllite\\pools.db";
+        //String url = "jdbc:sqlite:C:\\Users\\alber\\Desktop\\DB\\sqllite\\pools.db";
+        String url = "jdbc:sqlite:/home/pedrokazcunha/localdb/pools.db";
 
         try {
             Connection connectionSQLite = DriverManager.getConnection(url);
@@ -127,7 +128,8 @@ public class StorageController extends ReceiverAdapter{
 
         storagePools.clear();
 
-        String url = "jdbc:sqlite:C:\\Users\\alber\\Desktop\\DB\\sqllite\\pools.db";
+        //String url = "jdbc:sqlite:C:\\Users\\alber\\Desktop\\DB\\sqllite\\pools.db";
+        String url = "jdbc:sqlite:/home/pedrokazcunha/dropboxish/localdb/pools.db";
 
         try {
             Connection connectionSQLite = DriverManager.getConnection(url);
@@ -155,12 +157,42 @@ public class StorageController extends ReceiverAdapter{
             }
 
             connectionSQLite.close();
+        } catch (SQLException e) {
+            System.out.println("[ERROR] Couldn't reload data from local DB");
+        }
+    }
 
-            if(storagePools.size() == 0){
-                for(int i=0; i<6; i++)
-                    storagePools.add(new StoragePool(UUID.randomUUID().toString()));
+    private void ensureConsistency(){
+        String url = "jdbc:sqlite:/home/pedrokazcunha/localdb/pools.db";
+        //String url = "jdbc:sqlite:/home/pedrokazcunha/dropboxish/localdb/pools.db";
 
+        try {
+            Connection connectionSQLite = DriverManager.getConnection(url);
+
+            String sql = "DROP TABLE IF EXISTS shards;";
+            Statement stmt = connectionSQLite.createStatement();
+            stmt.execute(sql);
+
+            createSQLiteTable();
+
+            for(StoragePool sp : storagePools){
+                if(!sp.getMappedFiles().isEmpty()){
+
+                    for (String file : sp.getMappedFiles()) {
+                        String sql2 = "INSERT INTO shards (pool_id,file_name,shard_index,shard_data) VALUES (?,?,?,?)";
+                        PreparedStatement pstmt = connectionSQLite.prepareStatement(sql2);
+
+                        pstmt.setString(1, sp.getID());
+                        pstmt.setString(2, file);
+                        pstmt.setInt(3, sp.getShard(file).getIndex());
+                        pstmt.setBytes(4, sp.getShard(file).getData());
+
+                        pstmt.executeUpdate();
+                    }
+                }
             }
+
+            connectionSQLite.close();
         } catch (SQLException e) {
             System.out.println("[ERROR] Couldn't reload data from local DB");
         }
@@ -168,6 +200,7 @@ public class StorageController extends ReceiverAdapter{
 
     private void eventLoop(){
         System.out.println("[INFO] Running with " + storagePools.size() + " pools");
+        ensureConsistency();
         while(true) {
 
             if(channel.getView().getCoord().equals(channel.getAddress())) break;
@@ -178,8 +211,14 @@ public class StorageController extends ReceiverAdapter{
 
     private void coordinatorEventLoop(){
         try{
-            //connectGoogleDB();
+            connectGoogleDB();
             reloadData();
+
+            if(storagePools.size() < 6){
+                for(int i=0;i<6;i++){
+                    storagePools.add(new StoragePool(UUID.randomUUID().toString()));
+                }
+            }
         } catch(Exception e){
             System.out.println("[ERROR] Couldn't connect to Database");
         } finally {
@@ -204,7 +243,7 @@ public class StorageController extends ReceiverAdapter{
 
                 if(line.startsWith("exit")) {
                     server.shutdown();
-                    //connectionGoogleSQL.close();
+                    connectionGoogleSQL.close();
                     break;
                 }
                 else if(line.startsWith("size")){

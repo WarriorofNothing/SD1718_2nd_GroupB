@@ -30,10 +30,23 @@ public class CoordinatorServiceImpl extends ApplicationServiceGrpc.ApplicationSe
         String fileName = request.getFileName();
         String fileHash = request.getFileHash();
 
-        /*if(checkFile(fileName)) {
+        if(jChannel.getView().size() < 2) {
+            System.out.println("** [SERVICE-INFO] Not enough storage controllers to store the file");
+            responseObserver.onNext(RelayResponse.newBuilder()
+                    .setStatus("ERROR")
+                    .build());
             responseObserver.onCompleted();
             return;
-        }*/
+        }
+
+        if(checkFile(fileName)){
+            System.out.println("** [SERVICE-INFO] Duplicate file");
+            responseObserver.onNext(RelayResponse.newBuilder()
+                    .setStatus("ERROR")
+                    .build());
+            responseObserver.onCompleted();
+            return;
+        }
 
         ManagedChannel grpcChannel = ManagedChannelBuilder.forAddress("127.0.0.1", 8081)
                 .usePlaintext(true)
@@ -84,7 +97,8 @@ public class CoordinatorServiceImpl extends ApplicationServiceGrpc.ApplicationSe
             }
 
             if(!anyShardMissing){
-                //insertIntoDB(fileName,fileHash,block.length);
+                insertIntoDB(fileName,fileHash,block.length);
+
                 System.out.println("** [SERVICE-INFO] File <" + fileName + "> has been encoded and stored successfully");
 
                 responseObserver.onNext(RelayResponse.newBuilder()
@@ -144,10 +158,13 @@ public class CoordinatorServiceImpl extends ApplicationServiceGrpc.ApplicationSe
     public void relayDelete(RelayRequest request, StreamObserver<RelayResponse> responseObserver) {
         String fileName = request.getFileName();
 
-        /*if(!checkFile(fileName)){
+        if(!checkFile(fileName)) {
+            responseObserver.onNext(RelayResponse.newBuilder()
+                    .setStatus("ERROR")
+                    .build());
             responseObserver.onCompleted();
             return;
-        }*/
+        }
 
         boolean anyShardLeft = false;
 
@@ -167,7 +184,8 @@ public class CoordinatorServiceImpl extends ApplicationServiceGrpc.ApplicationSe
         }
 
         if(!anyShardLeft){
-            //deleteFromDB(fileName);
+            deleteFromDB(fileName);
+
             System.out.println("** [SERVICE-INFO] File <" + fileName + "> has been deleted successfully");
 
             responseObserver.onNext(RelayResponse.newBuilder()
@@ -224,6 +242,9 @@ public class CoordinatorServiceImpl extends ApplicationServiceGrpc.ApplicationSe
     }
 
     private boolean checkFile(String fileName){
+        if(connectionDB == null)
+            return false;
+
         try {
             String query = "SELECT * FROM files WHERE name = '" + fileName + "'";
 
@@ -238,6 +259,9 @@ public class CoordinatorServiceImpl extends ApplicationServiceGrpc.ApplicationSe
     }
 
     private void insertIntoDB(String fileName, String fileHash, long fileSize){
+        if(connectionDB == null)
+            return;
+
         try{
             String query = "INSERT INTO files (name, hash, size) VALUES (?, ?, ?)";
 
@@ -254,6 +278,9 @@ public class CoordinatorServiceImpl extends ApplicationServiceGrpc.ApplicationSe
     }
 
     private void deleteFromDB(String fileName){
+        if(connectionDB == null)
+            return;
+
         try{
             String query = "DELETE FROM files WHERE name = ?";
             PreparedStatement preparedStmt = connectionDB.prepareStatement(query);

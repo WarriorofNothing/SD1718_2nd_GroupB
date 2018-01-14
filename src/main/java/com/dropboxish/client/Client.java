@@ -117,7 +117,7 @@ public class Client {
         Thread uploadThread = new Thread( () -> {
             try {
                 CloseableHttpClient httpClient = HttpClients.createDefault();
-                HttpPost uploadFile = new HttpPost("http://localhost:8080/upload");
+                HttpPost uploadFile = new HttpPost("http://104.198.245.139:8080/upload");
                 MultipartEntityBuilder builder = MultipartEntityBuilder.create();
                 builder.addTextBody("field1", "yes", ContentType.TEXT_PLAIN);
 
@@ -155,7 +155,7 @@ public class Client {
 
                 CloseableHttpClient client = HttpClients.createDefault();
                 String query = "?filename=" + fileName;
-                try (CloseableHttpResponse response = client.execute(new HttpGet("http://localhost:8080/download" + query))) {
+                try (CloseableHttpResponse response = client.execute(new HttpGet("http://104.198.245.139/download" + query))) {
                     if (response.getStatusLine().getStatusCode() == 500) {
                         System.out.println("Sorry! Download Failed.");
                         return;
@@ -182,7 +182,7 @@ public class Client {
             try {
                 CloseableHttpClient client = HttpClients.createDefault();
 
-                HttpPost request = new HttpPost("http://localhost:8080/delete");
+                HttpPost request = new HttpPost("http://104.198.245.139:8080/delete");
                 StringEntity params = new StringEntity(fileName);
                 request.addHeader("content-type", "text/plain");
                 request.setEntity(params);
@@ -204,7 +204,7 @@ public class Client {
     private void listFiles(String pattern){
         try {
             String query = "?pattern=" + pattern;
-            URL url = new URL("http://localhost:8080/list/" + query);
+            URL url = new URL("http://104.198.245.139:8080/list/" + query);
 
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");

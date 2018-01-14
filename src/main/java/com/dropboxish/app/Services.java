@@ -101,7 +101,7 @@ public class Services {
         JsonObject msg = new JsonObject();
 
         try {
-            ManagedChannel channel = ManagedChannelBuilder.forAddress("127.0.0.1", 8082)
+            ManagedChannel channel = ManagedChannelBuilder.forAddress("10.128.0.2", 8082)
                     .usePlaintext(true)
                     .build();
 
@@ -143,7 +143,7 @@ public class Services {
 
     private boolean deleteFileFromController(String fileName){
         try {
-            ManagedChannel channel = ManagedChannelBuilder.forAddress("127.0.0.1", 8082)
+            ManagedChannel channel = ManagedChannelBuilder.forAddress("10.128.0.2", 8082)
                     .usePlaintext(true)
                     .build();
 
@@ -166,7 +166,7 @@ public class Services {
 
     private byte[] getFileFromController(String fileName){
         try {
-            ManagedChannel channel = ManagedChannelBuilder.forAddress("127.0.0.1", 8082)
+            ManagedChannel channel = ManagedChannelBuilder.forAddress("10.128.0.2", 8082)
                     .usePlaintext(true)
                     .build();
 
@@ -222,7 +222,7 @@ public class Services {
 
             server.start();
 
-            ManagedChannel channel = ManagedChannelBuilder.forAddress("127.0.0.1", 8082)
+            ManagedChannel channel = ManagedChannelBuilder.forAddress("10.128.0.2", 8082)
                     .usePlaintext(true)
                     .build();
 
