@@ -71,7 +71,9 @@ public class StorageController extends ReceiverAdapter{
 
 
     private void start() throws Exception {
-        channel = new JChannel().setReceiver(this);
+        System.setProperty("java.net.preferIPv4Stack","true");
+
+        channel = new JChannel("tcp.xml").setReceiver(this);
         channel.connect("ControllerGroupCluster");
         channel.getState(null, 10000);
 
@@ -94,7 +96,7 @@ public class StorageController extends ReceiverAdapter{
     }
 
     private boolean createSQLiteTable(){
-        //String url = "jdbc:sqlite:C:\\Users\\alber\\Desktop\\DB\\sqllite\\pools.db";
+        //String url = "jdbc:sqlite:C:\\Users\\Pedro\\Documents\\FCUP\\SD\\dropboxish\\sqlite\\db\\pools.db";
         String url = "jdbc:sqlite:/home/pedrokazcunha/localdb/pools.db";
 
         try {
@@ -128,8 +130,8 @@ public class StorageController extends ReceiverAdapter{
 
         storagePools.clear();
 
-        //String url = "jdbc:sqlite:C:\\Users\\alber\\Desktop\\DB\\sqllite\\pools.db";
-        String url = "jdbc:sqlite:/home/pedrokazcunha/dropboxish/localdb/pools.db";
+        //String url = "jdbc:sqlite:C:\\Users\\Pedro\\Documents\\FCUP\\SD\\dropboxish\\sqlite\\db\\pools.db";
+        String url = "jdbc:sqlite:/home/pedrokazcunha/localdb/pools.db";
 
         try {
             Connection connectionSQLite = DriverManager.getConnection(url);
@@ -163,8 +165,8 @@ public class StorageController extends ReceiverAdapter{
     }
 
     private void ensureConsistency(){
+        //String url = "jdbc:sqlite:C:\\Users\\Pedro\\Documents\\FCUP\\SD\\dropboxish\\sqlite\\db\\pools.db";
         String url = "jdbc:sqlite:/home/pedrokazcunha/localdb/pools.db";
-        //String url = "jdbc:sqlite:/home/pedrokazcunha/dropboxish/localdb/pools.db";
 
         try {
             Connection connectionSQLite = DriverManager.getConnection(url);
@@ -211,7 +213,6 @@ public class StorageController extends ReceiverAdapter{
 
     private void coordinatorEventLoop(){
         try{
-            connectGoogleDB();
             reloadData();
 
             if(storagePools.size() < 6){
@@ -219,6 +220,8 @@ public class StorageController extends ReceiverAdapter{
                     storagePools.add(new StoragePool(UUID.randomUUID().toString()));
                 }
             }
+
+            connectGoogleDB();
         } catch(Exception e){
             System.out.println("[ERROR] Couldn't connect to Database");
         } finally {
